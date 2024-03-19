@@ -182,6 +182,69 @@ menu "LVGL configuration"
 				If a widget has `style_opa < 255` (not `bg_opa`, `text_opa` etc) or not NORMAL blend mode
 				it is buffered into a "simple" layer before rendering. The widget can be buffered in smaller chunks.
 				"Transformed layers" (if `transform_angle/zoom` are set) use larger buffers and can't be drawn in chunks.
+				Required to draw anything on the screen.
+
+			config LV_DRAW_SW_DRAW_UNIT_CNT
+				int "Number of draw units"
+				default 1
+				help
+					> 1 requires an operating system enabled in `LV_USE_OS`
+					> 1 means multiply threads will render the screen in parallel
+
+			config LV_DRAW_SW_COMPLEX
+				bool "Enable complex draw engine"
+				default y
+				depends on LV_USE_DRAW_SW
+				help
+					Required to draw shadow, gradient, rounded corners, circles, arc, skew lines,
+					image transformations or any masks.
+
+			config LV_DRAW_SW_SHADOW_CACHE_SIZE
+				int "Allow buffering some shadow calculation"
+				depends on LV_DRAW_SW_COMPLEX
+				default 0
+				help
+					LV_DRAW_SW_SHADOW_CACHE_SIZE is the max shadow size to buffer, where
+					shadow size is `shadow_width + radius`.
+					Caching has LV_DRAW_SW_SHADOW_CACHE_SIZE^2 RAM cost.
+
+			config LV_DRAW_SW_CIRCLE_CACHE_SIZE
+				int "Set number of maximally cached circle data"
+				depends on LV_DRAW_SW_COMPLEX
+				default 4
+				help
+					The circumference of 1/4 circle are saved for anti-aliasing
+					radius * 4 bytes are used per circle (the most often used
+					radiuses are saved).
+					Set to 0 to disable caching.
+
+			config LV_DRAW_SW_LAYER_SIMPLE_BUF_SIZE
+				int "Optimal size to buffer the widget with opacity"
+				default 24576
+				depends on LV_USE_DRAW_SW
+				help
+					"Simple layers" are used when a widget has `style_opa < 255`
+					to buffer the widget into a layer and blend it as an image
+					with the given opacity. Note that `bg_opa`, `text_opa` etc
+					don't require buffering into layer.
+
+			choice LV_USE_DRAW_SW_ASM
+				prompt "Asm mode in sw draw"
+				default LV_DRAW_SW_ASM_NONE
+				help
+					ASM mode to be used.
+
+				config LV_DRAW_SW_ASM_NONE
+					bool "0: NONE"
+				config LV_DRAW_SW_ASM_NEON
+					bool "1: NEON"
+					depends on ARM_HAVE_NEON
+				config LV_DRAW_SW_ASM_MVE
+					bool "2: MVE"
+					depends on ARM_HAVE_MVE
+				config LV_DRAW_SW_ASM_CUSTOM
+					bool "255: CUSTOM"
+			endchoice
 
 		config LV_USE_DRAW_SW
 			bool "Enable software rendering"
@@ -196,6 +259,10 @@ menu "LVGL configuration"
 			help
 				> 1 requires an operating system enabled in `LV_USE_OS`
 				> 1 means multiply threads will render the screen in parallel
+
+		config LV_DRAW_THREAD_STACKSIZE
+			int "stack size of draw thread"
+			default 32768
 
 		config LV_USE_DRAW_ARM2D_SYNC
 			bool "Enable Arm's 2D image processing library (Arm-2D) for all Cortex-M processors"
