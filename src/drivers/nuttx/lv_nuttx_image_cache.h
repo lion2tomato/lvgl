@@ -15,7 +15,7 @@ extern "C" {
  *********************/
 
 #include "../../lv_conf_internal.h"
-#include <stdbool.h>
+#include LV_STDBOOL_INCLUDE
 
 /*********************
  *      DEFINES
